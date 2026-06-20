@@ -59,27 +59,28 @@ streamlit run app.py
 
 ### EPA
 
-- What are the latest EPA rules on air quality standards?
-- Summarize recent EPA proposed rules on greenhouse gas emissions.
-- What enforcement actions has the EPA taken regarding water pollution?
+- What are the EPA's rules on disposal of coal combustion residuals from electric utilities?
+- Summarize the EPA's ozone reclassification State Implementation Plan rule.
+- What pesticide tolerances has the EPA recently approved or proposed?
+- What is the EPA's risk evaluation for TBBPA under TSCA?
 
 ### FTC
 
-- What does the FTC require for subscription cancellation ("click to cancel")?
-- Summarize the FTC's rules on dark patterns in e-commerce.
-- What are the FTC's guidelines on endorsements and testimonials?
+- What are the terms of the FTC's proposed consent order with Ascension Health Alliance?
+- Summarize the FTC's proposed consent order with CMG Media Corporation.
+- What does the FTC's premerger notification early termination process involve?
 
 ### CFPB
 
-- What are the CFPB's rules on mortgage servicing?
-- How does the CFPB regulate payday lending?
-- What disclosures are required under CFPB credit card rules?
+- What changes has the CFPB proposed to the Equal Credit Opportunity Act (Regulation B)?
+- What is the CFPB's position on ability to repay and immigration status?
+- Summarize the CFPB's rules on small business lending under ECOA.
 
 ### SEC
 
-- What are the SEC's recent rules on climate-related disclosures?
-- Summarize SEC rules on insider trading reporting requirements.
-- What does the SEC require for SPACs under its latest proposed rules?
+- What rule changes has the Long-Term Stock Exchange proposed for market makers?
+- How is MIAX proposing to change fees for the Trade-by-Trade Report?
+- What are Nasdaq's proposed changes to the Options Regulatory Fee?
 
 ## Notes
 
