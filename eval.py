@@ -14,15 +14,15 @@ import json
 import os
 import anthropic
 from dotenv import load_dotenv
-from langchain_community.vectorstores import Chroma
+from langchain_postgres.vectorstores import PGVector
 from langchain_huggingface import HuggingFaceEmbeddings
 
 load_dotenv()
 
-CHROMA_DIR = "chroma_legal"
+COLLECTION_NAME = "legal_docs"
 EMBED_MODEL = "thenlper/gte-small"
-GENERATOR_MODEL = "claude-opus-4-8"
-JUDGE_MODEL = "claude-sonnet-4-6"
+GENERATOR_MODEL = "claude-sonnet-4-6"
+JUDGE_MODEL = "claude-opus-4-8"
 TOP_K = 5
 
 TEST_CASES = [
@@ -109,8 +109,15 @@ Return ONLY valid JSON in this exact format:
 
 
 def load_retriever():
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL not set in environment or .env file")
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
-    vector_store = Chroma(persist_directory=CHROMA_DIR, embedding_function=embeddings)
+    vector_store = PGVector(
+        embeddings=embeddings,
+        collection_name=COLLECTION_NAME,
+        connection=db_url,
+    )
     return vector_store.as_retriever(search_kwargs={"k": TOP_K})
 
 
