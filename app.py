@@ -12,14 +12,14 @@ import os
 import anthropic
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_community.vectorstores import Chroma
+from langchain_postgres.vectorstores import PGVector
 from langchain_huggingface import HuggingFaceEmbeddings
 
 load_dotenv()
 
-CHROMA_DIR = "chroma_legal"
+COLLECTION_NAME = "legal_docs"
 EMBED_MODEL = "thenlper/gte-small"
-CLAUDE_MODEL = "claude-opus-4-8"
+CLAUDE_MODEL = "claude-sonnet-4-6"
 TOP_K = 5
 
 SYSTEM_PROMPT = """You are a Legal & Regulatory Research Assistant specializing in US federal regulations.
@@ -45,10 +45,14 @@ Answer based on the context documents above."""
 
 @st.cache_resource
 def load_retriever():
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL not set in environment or .env file")
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
-    vector_store = Chroma(
-        persist_directory=CHROMA_DIR,
-        embedding_function=embeddings,
+    vector_store = PGVector(
+        embeddings=embeddings,
+        collection_name=COLLECTION_NAME,
+        connection=db_url,
     )
     return vector_store.as_retriever(search_kwargs={"k": TOP_K})
 
@@ -94,9 +98,9 @@ try:
     retriever = load_retriever()
 except Exception as e:
     st.error(
-        f"Could not load ChromaDB index: {e}\n\n"
+        f"Could not load pgvector index: {e}\n\n"
         "Run these first:\n"
-        "```\npython download_legal_data.py\npython ingest_legal.py\n```"
+        "```\npython download_legal_data.py\npython ingest.py\n```"
     )
     st.stop()
 

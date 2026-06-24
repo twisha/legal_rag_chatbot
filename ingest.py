@@ -1,20 +1,24 @@
 """
-ingest_legal.py — Build ChromaDB vector index from legal documents.
+ingest.py — Build pgvector index from legal documents.
 Run once after download_legal_data.py.
 
 Usage:
-    python ingest_legal.py
+    python ingest.py
 """
 
+import os
+import psycopg
 from pathlib import Path
+from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_postgres.vectorstores import PGVector
 from langchain_huggingface import HuggingFaceEmbeddings
 
+load_dotenv()
 
 DATA_DIR = "data_legal"
-CHROMA_DIR = "chroma_legal"
+COLLECTION_NAME = "legal_docs"
 EMBED_MODEL = "thenlper/gte-small"
 CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
@@ -47,20 +51,45 @@ def chunk_docs(docs):
 
 
 def build_index(chunks):
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL not set in environment or .env file")
+
     print(f"Loading embedding model: {EMBED_MODEL}")
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
-    print("Building ChromaDB index (this takes a minute)...")
-    vector_store = Chroma.from_documents(
+
+    print("Building pgvector index (this takes a minute)...")
+    vector_store = PGVector.from_documents(
         chunks,
         embeddings,
-        persist_directory=CHROMA_DIR,
+        collection_name=COLLECTION_NAME,
+        connection=db_url,
+        pre_delete_collection=True,
     )
-    count = vector_store._collection.count()
-    print(f"ChromaDB index saved to '{CHROMA_DIR}/' ({count} vectors)")
+    print(f"pgvector index saved to collection '{COLLECTION_NAME}'")
+    return vector_store
+
+
+def create_ivfflat_index(db_url: str):
+    # Convert SQLAlchemy URL scheme to plain psycopg scheme
+    conn_str = db_url.replace("postgresql+psycopg://", "postgresql://")
+    with psycopg.connect(conn_str) as conn:
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_legal_embedding
+            ON langchain_pg_embedding
+            USING ivfflat ((embedding::vector(384)) vector_cosine_ops)
+            WITH (lists = 100)
+        """)
+        conn.commit()
+    print("IVFFlat index created on embedding column")
 
 
 if __name__ == "__main__":
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL not set in environment or .env file")
     docs = load_docs(DATA_DIR)
     chunks = chunk_docs(docs)
     build_index(chunks)
-    print("\nDone! Next: streamlit run app_legal.py")
+    create_ivfflat_index(db_url)
+    print("\nDone! Next: streamlit run app.py")
